@@ -1786,7 +1786,7 @@ PHP_METHOD(sqlite3result, columnType)
 		return;
 	}
 
-	if (result_obj->complete) {
+	if (sqlite3_column_count(result_obj->stmt_obj->stmt) == 0) {
 		RETURN_FALSE;
 	}
 
@@ -1808,6 +1808,10 @@ PHP_METHOD(sqlite3result, fetchArray)
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "|l", &mode) == FAILURE) {
 		return;
+	}
+
+	if (sqlite3_column_count(result_obj->stmt_obj->stmt) == 0) {
+		RETURN_FALSE;
 	}
 
 	ret = sqlite3_step(result_obj->stmt_obj->stmt);
@@ -1841,7 +1845,6 @@ PHP_METHOD(sqlite3result, fetchArray)
 			break;
 
 		case SQLITE_DONE:
-			result_obj->complete = 1;
 			RETURN_FALSE;
 			break;
 
@@ -1868,8 +1871,6 @@ PHP_METHOD(sqlite3result, reset)
 	if (sqlite3_reset(result_obj->stmt_obj->stmt) != SQLITE_OK) {
 		RETURN_FALSE;
 	}
-
-	result_obj->complete = 0;
 
 	RETURN_TRUE;
 }
